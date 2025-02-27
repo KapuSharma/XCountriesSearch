@@ -7,6 +7,7 @@ function App() {
   const [allCountries, setAllCountries] = useState([]);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
+  // Fetch API Data
   useEffect(() => {
     const getCountriesFlag = async () => {
       try {
@@ -23,9 +24,11 @@ function App() {
         console.error("Error fetching data:", error);
       }
     };
+
     getCountriesFlag();
   }, []);
 
+  // Search Functionality
   const performSearch = (query) => {
     if (!query.trim()) {
       setCountryData(allCountries);
@@ -39,6 +42,7 @@ function App() {
     setCountryData(filtered.sort((a, b) => a.common.localeCompare(b.common)));
   };
 
+  // Debounce Search Input
   const debounceSearch = (event) => {
     clearTimeout(debounceTimeout);
     const newTimeout = setTimeout(() => {
@@ -58,9 +62,11 @@ function App() {
         />
       </div>
       <div className="App">
-        {countryData.map((data) => (
-          <Countries Data={data} key={data.png} />
-        ))}
+        {countryData.length > 0 ? (
+          countryData.map((data) => <Countries Data={data} key={data.png} />)
+        ) : (
+          <p>No countries found</p>
+        )}
       </div>
     </div>
   );
