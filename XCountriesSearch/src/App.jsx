@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
-import Countries from './components/Countries'
-import './App.css'
+import { useState, useEffect } from "react";
+import Countries from "./components/Countries";
+import "./App.css";
 
 function App() {
   const [countryData, setCountryData] = useState([]);
-  const [allCountries, setAllCountries] = useState([]); // To store the original data
-  const [debounceTimeout, setDebounceTimeout] = useState();
+  const [allCountries, setAllCountries] = useState([]);
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
 
   useEffect(() => {
     const getCountriesFlag = async () => {
@@ -13,62 +13,57 @@ function App() {
         const res = await fetch(
           "https://countries-search-data-prod-812920491762.asia-south1.run.app/countries"
         );
+        if (!res.ok) {
+          throw new Error("Failed to fetch country data");
+        }
         const data = await res.json();
         setCountryData(data);
-        setAllCountries(data); // Store the full data for reset
+        setAllCountries(data);
       } catch (error) {
-        console.error("Error fetching data:", error); // Log error to console
+        console.error("Error fetching data:", error);
       }
     };
     getCountriesFlag();
   }, []);
 
   const performSearch = (query) => {
-    if (!query) {
-      setCountryData(allCountries); // Reset to original data when query is empty
+    if (!query.trim()) {
+      setCountryData(allCountries);
       return;
     }
-    const filtered = allCountries.filter((country) => {
-      const nameMatch = country.common.toLowerCase().includes(query.toLowerCase());
-      return nameMatch;
-    });
-    const sortedFiltered = filtered.sort((a, b) => a.common.localeCompare(b.common));
 
-    setCountryData(sortedFiltered);
+    const filtered = allCountries.filter((country) =>
+      country.common.toLowerCase().includes(query.toLowerCase())
+    );
+
+    setCountryData(filtered.sort((a, b) => a.common.localeCompare(b.common)));
   };
 
-  const debounceSearch = (event, debounceTimeout) => {
+  const debounceSearch = (event) => {
     clearTimeout(debounceTimeout);
     const newTimeout = setTimeout(() => {
       performSearch(event.target.value);
     }, 500);
-    return newTimeout;
-  };
-
-  const handleInputChange = (e) => {
-    const timeout = debounceSearch(e, debounceTimeout);
-    setDebounceTimeout(timeout);
+    setDebounceTimeout(newTimeout);
   };
 
   return (
     <div>
-      <div className='input-box'>
+      <div className="input-box">
         <input
           type="text"
           placeholder="Search for countries..."
-          onChange={handleInputChange}
+          onChange={debounceSearch}
           className="input"
         />
       </div>
       <div className="App">
-        {countryData.map((Data) => {
-          return <Countries Data={Data} key={Data.png} />;
-        })}
+        {countryData.map((data) => (
+          <Countries Data={data} key={data.png} />
+        ))}
       </div>
     </div>
   );
 }
-
-
 
 export default App;
